@@ -1,0 +1,6 @@
+{
+  "name": "Cafe Bageecha",
+  "description": "Escape Into Nature. A fully functional website for Cafe Bageecha in Chamba, Himachal Pradesh, celebrating high hospitality and nature's beauty.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

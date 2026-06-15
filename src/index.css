@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-forest: #163B34;
+  --color-gold: #D4A373;
+  --color-cream: #F7F4EE;
+  --color-cream-dim: #FCF9F3;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-cream text-forest selection:bg-gold/20 selection:text-forest antialiased scroll-smooth;
+  }
+}
+
+/* Custom gorgeous scrollbar styled to match Cafe Bageecha's aesthetics */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F7F4EE;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4A373;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #163B34;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float-slow 4s ease-in-out infinite;
+}
