@@ -607,11 +607,11 @@ export default function App() {
                     <div className="space-y-4 text-xs font-sans text-white/80">
                       <div className="flex items-center space-x-3">
                         <MapPin size={16} className="text-gold shrink-0" />
-                        <span>Off Chamba Highway Ridge, Himachal Pradesh</span>
+                        <span>Panchvati, Sarol, Chamba, Himachal Pradesh</span>
                       </div>
                       <div className="flex items-center space-x-3">
                         <Phone size={16} className="text-gold shrink-0" />
-                        <span>Coordinator Mobile: +91 98765 43210</span>
+                        <span>Coordinator Mobile: +91 76580 96379</span>
                       </div>
                       <div className="flex items-center space-x-3">
                         <Clock size={16} className="text-gold shrink-0" />
@@ -754,7 +754,7 @@ export default function App() {
                             <input 
                               type="tel" 
                               required 
-                              placeholder="E.g., +91 98765 43210" 
+                              placeholder="E.g., +91 76580 96379" 
                               value={userPhone} 
                               onChange={(e) => setUserPhone(e.target.value)}
                               className="w-full bg-cream rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-gold focus:outline-none border border-forest/10"
@@ -877,12 +877,12 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.3 }}
-              className="pt-32 pb-24"
+              className="pt-32 pb-24 bg-cream"
             >
               <div className="max-w-7xl mx-auto px-6 text-center space-y-3 mb-10">
                 <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-gold">VISIT US IN CHAMBA</span>
-                <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-forest">Inquiry Desk & Coordinate map</h1>
-                <p className="text-xs sm:text-sm text-forest/60 max-w-md mx-auto font-light">Get custom driving directions, operating ledger sheets, and banquet reservations.</p>
+                <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-forest">Inquiry Desk & Coordinates</h1>
+                <p className="text-xs sm:text-sm text-forest/60 max-w-md mx-auto font-light font-sans">Get custom driving directions, operating ledger sheets, and banquet reservations.</p>
               </div>
               <ContactSection />
             </motion.div>
@@ -931,7 +931,9 @@ export default function App() {
                 IG
               </a>
               <a 
-                href="#" 
+                href="https://wa.me/917658096379?text=Hello%20Cafe%20Bageecha%2C%20I%20would%20like%20to%20know%20more%20about%20your%20cafe." 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 border border-white/15 rounded-full flex items-center justify-center text-xs font-bold hover:bg-gold hover:text-forest hover:border-gold transition-all shadow-sm"
                 aria-label="WhatsApp Hook Link"
               >
@@ -960,11 +962,11 @@ export default function App() {
             <ul className="space-y-4 text-xs text-white/70 font-sans leading-relaxed text-left">
               <li className="flex items-start space-x-3.5 text-left">
                 <MapPin size={15} className="text-gold shrink-0 mt-0.5" />
-                <span>Cafe Bageecha, <br />Chamba, Himachal Pradesh, India</span>
+                <span>Cafe Bageecha, <br />Panchvati, Sarol, Chamba,<br />Himachal Pradesh, India</span>
               </li>
               <li className="flex items-center space-x-3.5 text-left">
                 <Phone size={14} className="text-gold shrink-0" />
-                <span>+91 98765 43210</span>
+                <span>+91 76580 96379</span>
               </li>
               <li className="flex items-center space-x-3.5 text-left">
                 <Clock size={14} className="text-gold shrink-0" />
@@ -1002,7 +1004,7 @@ export default function App() {
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className="fixed bottom-6 right-6 z-40 hidden md:block"
+            className="fixed bottom-6 right-24 md:right-28 z-40 hidden md:block"
           >
             <button
               onClick={() => navigate("/reservations")}
@@ -1014,6 +1016,38 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* FLOATING WHATSAPP BUTTON */}
+      <motion.a
+        href="https://wa.me/917658096379?text=Hello%20Cafe%20Bageecha%2C%20I%20would%20like%20to%20know%20more%20about%20your%20cafe."
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat on WhatsApp"
+        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        animate={{ 
+          opacity: 1, 
+          scale: 1,
+          y: [0, -4, 0]
+        }}
+        transition={{
+          opacity: { duration: 0.5 },
+          scale: { duration: 0.5 },
+          y: {
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }
+        }}
+        whileHover={{ 
+          scale: 1.08,
+          boxShadow: "0 10px 25px rgba(37, 211, 102, 0.4)"
+        }}
+        className="fixed bottom-5 right-5 md:bottom-6 md:right-6 z-50 w-[52px] h-[52px] md:w-14 md:h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg transition-transform duration-300 cursor-pointer"
+      >
+        <svg className="w-6 h-6 md:w-7 md:h-7 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.1 1.4 4.8 1.4 5.4 0 9.8-4.4 9.8-9.8s-4.4-9.8-9.8-9.8c-5.4 0-9.8 4.4-9.8 9.8 0 1.9.5 3.7 1.5 5.3l-1.0 3.6 3.7-1.0zM17.5 14.8c-.3-.2-1.7-.8-2.0-.9-.3-.1-.5-.2-.7.1-.2.3-.8 1.0-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.2-.4-2.3-1.4-.8-.7-1.4-1.7-1.6-2.0-.2-.3-.0-.5.1-.6s.3-.3.4-.5c.2-.2.2-.3.3-.5.1-.2.0-.4-.0-.5-.1-.2-.7-1.6-.9-2.2-.3-.5-.5-.4-.7-.4h-.6c-.2 0-.5.1-.8.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.3c.2.2 2.3 3.6 5.7 5.1.8.3 1.5.6 2.0.7.8.3 1.6.2 2.2.1.7-.1 1.7-.7 1.9-1.3.2-.7.2-1.2.1-1.3s-.3-.2-.6-.3z" />
+        </svg>
+      </motion.a>
 
       {/* CORE MODAL WIZARDS */}
       <BookingModal 
