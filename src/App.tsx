@@ -14,7 +14,19 @@ import {
   Award,
   ChevronRight,
   Info,
-  Users
+  Users,
+  Download,
+  CalendarPlus,
+  MessageSquare,
+  Home,
+  ShieldCheck,
+  Check,
+  AlertTriangle,
+  ArrowLeft,
+  ChevronDown,
+  HelpCircle,
+  Camera,
+  Car
 } from "lucide-react";
 import Navbar from "./components/Navbar";
 import BookingModal from "./components/BookingModal";
@@ -85,7 +97,7 @@ export default function App() {
   const [resStep, setResStep] = useState<1 | 2 | 3>(1);
   const [guests, setGuests] = useState<number>(2);
   const [date, setDate] = useState<string>("");
-  const [time, setTime] = useState<string>("13:00");
+  const [time, setTime] = useState<string>("01:30 PM");
   const [tableType, setTableType] = useState<string>("garden_seating");
   const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
@@ -93,6 +105,13 @@ export default function App() {
   const [specialNotes, setSpecialNotes] = useState<string>("");
   const [bookingCode, setBookingCode] = useState<string>("");
   const [assignedTable, setAssignedTable] = useState<number>(0);
+
+  // Real-time validation touched values
+  const [resNameTouched, setResNameTouched] = useState(false);
+  const [resEmailTouched, setResEmailTouched] = useState(false);
+  const [resPhoneTouched, setResPhoneTouched] = useState(false);
+  const [isResDownloading, setIsResDownloading] = useState(false);
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   const seatingAreas = [
     {
@@ -121,22 +140,63 @@ export default function App() {
     }
   ];
 
+  const resEmailValid = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  const resPhoneValid = (p: string) => p.replace(/\D/g, "").length >= 10;
+
   const handleNextStep = () => {
     if (resStep === 1) {
       if (!date) {
-        alert("Please choose a valid day to experience Cafe Bageecha.");
+        alert("Please select a calendar date to align our kitchen ledger resources.");
         return;
       }
       setResStep(2);
     } else if (resStep === 2) {
-      if (!userName.trim() || !userPhone.trim() || !userEmail.trim()) {
-        alert("Please complete all primary fields to protect your reservation.");
+      setResNameTouched(true);
+      setResEmailTouched(true);
+      setResPhoneTouched(true);
+
+      if (!userName.trim()) {
+        alert("Please supply your full name so our host can welcome you.");
         return;
       }
+      if (!resEmailValid(userEmail)) {
+        alert("Please double check your email address coordinate for verified transmission.");
+        return;
+      }
+      if (!resPhoneValid(userPhone)) {
+        alert("A robust 10-digit telephone coordinate guarantees table notifications reach you.");
+        return;
+      }
+
       const code = `GBC-${Math.floor(1000 + Math.random() * 9000)}-${date.replace(/-/g, "").substring(4, 8).toUpperCase()}`;
       const randomTable = Math.floor(1 + Math.random() * 18);
       setBookingCode(code);
       setAssignedTable(randomTable);
+
+      // Save to localStorage for robust full-stack persistence simulation page
+      const newReservation = {
+        code,
+        userName,
+        userEmail,
+        userPhone,
+        date,
+        time,
+        guests,
+        tableType,
+        specialNotes,
+        tableNumber: randomTable,
+        timestamp: new Date().toISOString()
+      };
+      
+      const existing = localStorage.getItem("bageecha_reservations");
+      if (existing) {
+        const parsed = JSON.parse(existing);
+        parsed.push(newReservation);
+        localStorage.setItem("bageecha_reservations", JSON.stringify(parsed));
+      } else {
+        localStorage.setItem("bageecha_reservations", JSON.stringify([newReservation]));
+      }
+
       setResStep(3);
     }
   };
@@ -145,12 +205,50 @@ export default function App() {
     setResStep(1);
     setGuests(2);
     setDate("");
-    setTime("13:00");
+    setTime("01:30 PM");
     setTableType("garden_seating");
     setUserName("");
     setUserEmail("");
     setUserPhone("");
     setSpecialNotes("");
+    setResNameTouched(false);
+    setResEmailTouched(false);
+    setResPhoneTouched(false);
+  };
+
+  const triggerResDownloadMock = () => {
+    setIsResDownloading(true);
+    setTimeout(() => {
+      setIsResDownloading(false);
+      const content = `
+=========================================
+       CAFE BAGEECHA TABLE SECURITY
+=========================================
+Booking Code    : ${bookingCode}
+Customer Name   : ${userName}
+Seating Zone    : ${tableType.replace(/_/g, " ").toUpperCase()}
+Party Size      : ${guests} Guests
+Reserved Date   : ${date}
+Arrival Bracket : ${time}
+Coordinate Tel  : ${userPhone}
+Secured Table   : Table #${assignedTable}
+Status          : VERIFIED & CONFIRMED
+
+Location        : Cafe Bageecha, Panchvati,
+                  Sarol, Chamba, Himachal Pradesh
+=========================================
+   Show this voucher upon garden entrance.
+      Thank you for choosing Cafe Bageecha.
+      `;
+      const blob = new Blob([content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `bageecha_booking_${bookingCode}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }, 1200);
   };
 
   // Signature selected items to display on the home menu teaser
@@ -230,7 +328,7 @@ export default function App() {
                     </div>
 
                     {/* Headline - Max Width 600px & precise luxury serif typographic hierarchy */}
-                    <h1 id="hero-headline" className="font-serif text-4xl sm:text-5xl lg:text-[72px] xl:text-[76px] text-white leading-[1.0] tracking-tight font-light transition-all duration-300 max-w-[600px]">
+                    <h1 id="hero-headline" className="font-serif text-[46px] text-white leading-[1.1] tracking-tight font-light transition-all duration-300 max-w-[600px]">
                       Escape Into <span className="italic text-gold font-normal">Nature</span> <br />
                       <span className="font-normal text-white">at Cafe Bageecha</span>
                     </h1>
@@ -296,7 +394,7 @@ export default function App() {
                         scale: 1.02,
                         transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
                       }}
-                      className="relative rounded-[24px] overflow-hidden select-none w-full cursor-pointer"
+                      className="relative rounded-[24px] overflow-hidden select-none w-full max-w-sm md:max-w-[420px] cursor-pointer aspect-[3/4]"
                       style={{
                         boxShadow: '0 25px 80px rgba(0,0,0,0.08)',
                         border: '1px solid rgba(0,0,0,0.05)',
@@ -304,7 +402,7 @@ export default function App() {
                     >
                       <img 
                         alt="Chamba slow living and reading culture at Cafe Bageecha" 
-                        className="w-full h-auto object-cover rounded-[24px] block" 
+                        className="w-full h-full object-cover object-[center_35%] rounded-[24px] block" 
                         src="https://www.image2url.com/r2/default/images/1781548640686-252d3afe-d1bf-43b1-b325-0ccd816255e4.png"
                         loading="lazy"
                       />
@@ -515,6 +613,122 @@ export default function App() {
                   </div>
                 </div>
               </div>
+
+              {/* FREQUENTLY ASKED QUESTIONS SECTION */}
+              <div className="max-w-4xl mx-auto px-6 space-y-12">
+                <div className="text-center space-y-4">
+                  <span className="text-[9px] uppercase tracking-[0.25em] font-extrabold text-gold">GUEST INFORMATION LEDGER</span>
+                  <h3 className="font-serif text-3xl sm:text-4xl font-bold text-forest">Frequently Answered Truths</h3>
+                  <p className="text-xs sm:text-sm text-forest/70 max-w-[520px] mx-auto font-light">
+                    Empowering confidence, clarity, and effortless comfort to optimize your upcoming reservation at our mountain sanctuary.
+                  </p>
+                </div>
+
+                <div className="space-y-4 max-w-3xl mx-auto">
+                  {[
+                    {
+                      question: "How do you accommodate dietary restrictions and severe allergies?",
+                      answer: "All our signature recipes highlight clean, unheated local materials. We tag gluten-free, dairy-free, sugar-free, or entirely vegan items carefully on our culinary menus. Our garden kitchen operates separate prep areas to safely eliminate cross-contamination hazards. Kindly notify our host team of severe allergies during booking or on arrival so the ledger can be flagged immediately.",
+                      category: "Dietary",
+                      icon: Heart
+                    },
+                    {
+                      question: "Is there private parking and valet service on the mountain cliffside?",
+                      answer: "Yes, we provide complimentary secure private parking spaces right adjacent to our entrance gates on the Panchvati cliff ridge. Full professional valet service is available during all operating hours to seamlessly take care of your vehicle while you walk down to the sanctuaries. Main paths are built with safe natural stone inclines to be fully wheelchair-accessible.",
+                      category: "Access",
+                      icon: Car
+                    },
+                    {
+                      question: "What is your photography, drone and privacy policy?",
+                      answer: "We warmly support standard guest snapshots, smartphone shots, or personal memory capture across our floral structures. However, to guarantee the absolute private comfort and peace of our guests, commercial production equipment or aerial drone flights require a special pre-clearance permit from guest relations.",
+                      category: "Media",
+                      icon: Camera
+                    },
+                    {
+                      question: "Do you accept walk-ins, and how long are reserved tables held?",
+                      answer: "Advance reservations are highly recommended for peak lunch and sunset hours, especially for prime spots like the mountain terrace. We reserve a percentage of our open-air garden benched zones for walk-ins on a rolling basis. Reserved spots are held for 15 minutes. If traffic along the Himalayan highway is delayed, simply message our desk on WhatsApp.",
+                      category: "Booking",
+                      icon: Calendar
+                    },
+                    {
+                      question: "Are dogs and other companion companion pets welcome?",
+                      answer: "Absolutely! We love welcoming small companion pets to accompany you in our outdoor garden layout and cozy benches. We provide clean, cooling bowls of mountain mineral spring water on request. We kindly ask that pets remain on leashes and respect nearby guest sanctuary zones.",
+                      category: "Pets",
+                      icon: Compass
+                    }
+                  ].map((faq, index) => {
+                    const Icon = faq.icon;
+                    const isOpen = activeFaq === index;
+                    return (
+                      <div 
+                        key={index} 
+                        className="bg-white rounded-xl border border-forest/10 overflow-hidden shadow-xs hover:shadow-md transition-all duration-300"
+                      >
+                        <button
+                          onClick={() => setActiveFaq(isOpen ? null : index)}
+                          className="w-full px-6 py-5 flex items-center justify-between text-left transition-colors cursor-pointer select-none"
+                        >
+                          <div className="flex items-center space-x-4 pr-4">
+                            <div className={`p-2 rounded-lg transition-colors duration-300 ${isOpen ? 'bg-gold/15 text-forest' : 'bg-cream text-gold'}`}>
+                              <Icon size={16} />
+                            </div>
+                            <span className="font-serif text-sm sm:text-base font-bold text-forest hover:text-gold transition-colors block">
+                              {faq.question}
+                            </span>
+                          </div>
+                          <motion.div
+                            animate={{ rotate: isOpen ? 180 : 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-gold shrink-0 bg-cream p-1 rounded-full"
+                          >
+                            <ChevronDown size={14} />
+                          </motion.div>
+                        </button>
+                        
+                        <AnimatePresence initial={false}>
+                          {isOpen && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25, ease: "easeInOut" }}
+                            >
+                              <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-forest/75 leading-relaxed font-light border-t border-forest/5 bg-cream-dim flex items-start space-x-3">
+                                <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-gold shrink-0 animate-pulse" />
+                                <p>{faq.answer}</p>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Reduction of Support Load Box */}
+                <div className="bg-forest text-white p-6 sm:p-8 rounded-xl max-w-3xl mx-auto flex flex-col sm:flex-row items-center sm:justify-between text-left gap-4">
+                  <div className="space-y-1">
+                    <h4 className="font-serif text-base sm:text-lg font-bold">Have individual inquiries or requests?</h4>
+                    <p className="text-white/60 text-xs font-light max-w-md">Our hosts are ready to customize flowers, arrange special mountain transfers, or welcome large group retreats.</p>
+                  </div>
+                  <div className="flex gap-2.5 shrink-0 w-full sm:w-auto">
+                    <a
+                      href="https://wa.me/917658096379?text=Hello%20Cafe%20Bageecha%20desk%21%20I%20have%20an%20inquiry%20about"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 sm:flex-none text-center bg-white hover:bg-gold text-forest font-bold px-5 py-3 rounded-lg text-xs uppercase tracking-wider transition-all"
+                    >
+                      WhatsApp Desk
+                    </a>
+                    <button 
+                      onClick={() => navigate("/reservations")}
+                      className="flex-1 sm:flex-none text-center bg-gold hover:bg-white text-forest font-bold px-5 py-3 rounded-lg text-xs uppercase tracking-wider transition-all"
+                    >
+                      Book Table
+                    </button>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           )}
 
@@ -627,17 +841,17 @@ export default function App() {
                 </div>
 
                 {/* Right Interactive Table reservation wizard */}
-                <div id="integrated-reservation-form" className="lg:col-span-7 bg-white rounded-2xl border border-forest/10 shadow-lg overflow-hidden flex flex-col">
+                <div id="integrated-reservation-form" className="lg:col-span-7 bg-white rounded-2xl border border-forest/10 shadow-xl overflow-hidden flex flex-col">
                   {/* Form Header */}
                   <div className="bg-forest px-6 py-5 text-white flex justify-between items-center text-left">
                     <div>
                       <span className="font-serif text-xl font-semibold tracking-wide">
-                        {resStep === 3 ? "Spot Secured!" : "Dining Option Request"}
+                        {resStep === 3 ? "Reservation Confirmed!" : "Dining Option Request"}
                       </span>
-                      <p className="text-white/60 text-[9px] uppercase tracking-wider mt-0.5 font-sans font-bold">
-                        {resStep === 1 && "Step 1: Ambiance preference select"}
-                        {resStep === 2 && "Step 2: Coordinates & diets"}
-                        {resStep === 3 && "Verified mountain vouchers"}
+                      <p className="text-white/60 text-[9px] uppercase tracking-wider mt-0.5 font-mono">
+                        {resStep === 1 && "Phase 1: Seating Ambiance Select"}
+                        {resStep === 2 && "Phase 2: Guest Coordinates & Desires"}
+                        {resStep === 3 && "Verified mountain vouchers issued"}
                       </p>
                     </div>
                     {resStep !== 3 && (
@@ -648,6 +862,42 @@ export default function App() {
                         Reset Form
                       </button>
                     )}
+                  </div>
+
+                  {/* Progressive indicator bar */}
+                  <div className="bg-cream-dim border-b border-forest/10 px-6 py-2.5 flex items-center justify-between text-[11px] font-mono shrink-0">
+                    <div className="flex items-center space-x-4 w-full">
+                      <div className="flex items-center space-x-1">
+                        <div className={`w-4- h-4 rounded-full flex items-center justify-center p-0.5 text-[9px] font-bold ${
+                          resStep >= 1 ? "bg-forest text-gold" : "bg-forest/10 text-forest/40"
+                        }`}>
+                          {resStep > 1 ? <Check size={8} className="stroke-[3]" /> : "1"}
+                        </div>
+                        <span className={resStep === 1 ? "text-forest font-bold" : "text-forest/40"}>Ambiance</span>
+                      </div>
+                      <div className="h-[1px] w-8 bg-forest/10" />
+                      <div className="flex items-center space-x-1">
+                        <div className={`w-4 h-4 rounded-full flex items-center justify-center p-0.5 text-[9px] font-bold ${
+                          resStep >= 2 ? "bg-forest text-gold" : "bg-forest/10 text-forest/40"
+                        }`}>
+                          {resStep > 2 ? <Check size={8} className="stroke-[3]" /> : "2"}
+                        </div>
+                        <span className={resStep === 2 ? "text-forest font-bold" : "text-forest/40"}>Details</span>
+                      </div>
+                      <div className="h-[1px] w-8 bg-forest/10" />
+                      <div className="flex items-center space-x-1">
+                        <div className={`w-4 h-4 rounded-full flex items-center justify-center p-0.5 text-[9px] font-bold ${
+                          resStep === 3 ? "bg-forest text-gold" : "bg-forest/10 text-forest/40"
+                        }`}>
+                          {resStep === 3 ? <Check size={8} className="stroke-[3]" /> : "3"}
+                        </div>
+                        <span className={resStep === 3 ? "text-forest font-bold" : "text-forest/40"}>Pass</span>
+                      </div>
+                    </div>
+                    <div className="hidden sm:flex items-center space-x-1 text-emerald-700">
+                      <ShieldCheck size={12} />
+                      <span className="text-[10px] uppercase font-bold tracking-wider">Spot Protected</span>
+                    </div>
                   </div>
 
                   {/* Form Content body */}
@@ -663,10 +913,10 @@ export default function App() {
                               <select 
                                 value={guests}
                                 onChange={(e) => setGuests(parseInt(e.target.value))}
-                                className="w-full bg-cream rounded-lg pl-9 pr-3 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-gold border border-forest/10"
+                                className="w-full bg-cream rounded-lg pl-9 pr-3 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-gold border border-forest/10 font-bold text-forest"
                               >
-                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                                  <option key={n} value={n}>{n} {n === 1 ? "Guest" : "Guests"}</option>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 16].map(n => (
+                                  <option key={n} value={n}>{n} {n === 1 ? "Guest Seating" : `Guests (${n} Seats)`}</option>
                                 ))}
                               </select>
                             </div>
@@ -678,10 +928,11 @@ export default function App() {
                               <Calendar className="absolute left-3 text-gold" size={14} />
                               <input 
                                 type="date"
+                                required
                                 value={date}
                                 min={new Date().toISOString().split("T")[0]}
                                 onChange={(e) => setDate(e.target.value)}
-                                className="w-full bg-cream rounded-lg pl-9 pr-3 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-gold border border-forest/10"
+                                className="w-full bg-cream rounded-lg pl-9 pr-3 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-gold border border-forest/10 font-bold text-forest"
                               />
                             </div>
                           </div>
@@ -693,7 +944,7 @@ export default function App() {
                               <select 
                                 value={time} 
                                 onChange={(e) => setTime(e.target.value)}
-                                className="w-full bg-cream rounded-lg pl-9 pr-3 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-gold border border-forest/10"
+                                className="w-full bg-cream rounded-lg pl-9 pr-3 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-gold border border-forest/10 font-bold text-forest"
                               >
                                 {["09:30 AM", "11:00 AM", "12:30 PM", "01:30 PM", "03:00 PM", "04:30 PM", "06:00 PM", "07:30 PM", "09:00 PM"].map(t => (
                                   <option key={t} value={t}>{t}</option>
@@ -718,9 +969,14 @@ export default function App() {
                                 }`}
                               >
                                 <img src={area.image} className="w-12 h-12 object-cover rounded-md" alt={area.name} />
-                                <div className="text-left">
-                                  <h4 className="font-serif text-sm font-bold text-forest">{area.name}</h4>
-                                  <span className="text-[9px] uppercase tracking-wider text-gold font-bold">{area.headline}</span>
+                                <div className="text-left flex-1 min-w-0">
+                                  <h4 className="font-serif text-sm font-bold text-forest truncate">{area.name}</h4>
+                                  <span className="text-[9px] uppercase tracking-wider text-gold font-bold truncate block">{area.headline}</span>
+                                </div>
+                                <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
+                                  tableType === area.id ? "border-gold bg-gold" : "border-forest/20"
+                                }`}>
+                                  {tableType === area.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                 </div>
                               </div>
                             ))}
@@ -739,46 +995,88 @@ export default function App() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                           <div>
-                            <label className="text-[10px] uppercase font-bold tracking-wider text-forest/65 block mb-1">Your Name *</label>
+                            <div className="flex justify-between items-center mb-1">
+                              <label className="text-[10px] uppercase font-bold tracking-wider text-forest/65 block">Your Name *</label>
+                              {resNameTouched && userName.trim().length > 0 && (
+                                <span className="text-[9px] text-emerald-600 font-bold flex items-center space-x-1">
+                                  <Check size={10} /> <span>Looks Great</span>
+                                </span>
+                              )}
+                            </div>
                             <input 
                               type="text" 
                               required 
                               placeholder="E.g., Nitish Kaushal" 
                               value={userName} 
+                              onBlur={() => setResNameTouched(true)}
                               onChange={(e) => setUserName(e.target.value)}
-                              className="w-full bg-cream rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-gold focus:outline-none border border-forest/10"
+                              className="w-full bg-cream rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-gold focus:outline-none border border-forest/10 font-semibold"
                             />
+                            {resNameTouched && !userName.trim() && (
+                              <p className="text-[10px] text-red-600 font-medium mt-1 flex items-center space-x-1">
+                                <AlertTriangle size={10} /> <span>Host requires a welcome name.</span>
+                              </p>
+                            )}
                           </div>
+                          
                           <div>
-                            <label className="text-[10px] uppercase font-bold tracking-wider text-forest/65 block mb-1">Phone Number *</label>
+                            <div className="flex justify-between items-center mb-1">
+                              <label className="text-[10px] uppercase font-bold tracking-wider text-forest/65 block">Phone Number *</label>
+                              {resPhoneTouched && resPhoneValid(userPhone) && (
+                                <span className="text-[9px] text-emerald-600 font-bold flex items-center space-x-1">
+                                  <Check size={10} /> <span>Valid Channel</span>
+                                </span>
+                              )}
+                            </div>
                             <input 
                               type="tel" 
                               required 
                               placeholder="E.g., +91 76580 96379" 
                               value={userPhone} 
+                              onBlur={() => setResPhoneTouched(true)}
                               onChange={(e) => setUserPhone(e.target.value)}
-                              className="w-full bg-cream rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-gold focus:outline-none border border-forest/10"
+                              className="w-full bg-cream rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-gold focus:outline-none border border-forest/10 font-mono"
                             />
+                            {resPhoneTouched && !resPhoneValid(userPhone) && (
+                              <p className="text-[10px] text-amber-700 font-medium mt-1 flex items-center space-x-1">
+                                <AlertTriangle size={10} /> <span>Please insert a valid 10-digit mobile number.</span>
+                              </p>
+                            )}
                           </div>
+
                           <div className="md:col-span-2">
-                            <label className="text-[10px] uppercase font-bold tracking-wider text-forest/65 block mb-1">Email Address *</label>
+                            <div className="flex justify-between items-center mb-1">
+                              <label className="text-[10px] uppercase font-bold tracking-wider text-forest/65 block">Email Address *</label>
+                              {resEmailTouched && resEmailValid(userEmail) && (
+                                <span className="text-[9px] text-emerald-600 font-bold flex items-center space-x-1">
+                                  <Check size={10} /> <span>Deliverable</span>
+                                </span>
+                              )}
+                            </div>
                             <input 
                               type="email" 
                               required 
-                              placeholder="E.g., you@example.com" 
+                              placeholder="E.g., nitishkaushal17@gmail.com" 
                               value={userEmail} 
+                              onBlur={() => setResEmailTouched(true)}
                               onChange={(e) => setUserEmail(e.target.value)}
-                              className="w-full bg-cream rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-gold focus:outline-none border border-forest/10"
+                              className="w-full bg-cream rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-gold focus:outline-none border border-forest/10 font-mono"
                             />
+                            {resEmailTouched && !resEmailValid(userEmail) && (
+                              <p className="text-[10px] text-red-600 font-medium mt-1 flex items-center space-x-1">
+                                <AlertTriangle size={10} /> <span>A valid email is required to dispatch the secure voucher.</span>
+                              </p>
+                            )}
                           </div>
+
                           <div className="md:col-span-2">
                             <label className="text-[10px] uppercase font-bold tracking-wider text-forest/65 block mb-1">Dietary Exclusions / Occasion Remarks</label>
                             <textarea 
                               rows={2.5} 
-                              placeholder="Any food sensitivies, honey exclusions, high chairs or flower setup options." 
+                              placeholder="Any food sensitivities, honey exclusions, high chairs or flower setup options." 
                               value={specialNotes} 
                               onChange={(e) => setSpecialNotes(e.target.value)}
-                              className="w-full bg-cream rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-gold focus:outline-none border border-forest/10"
+                              className="w-full bg-cream rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-gold focus:outline-none border border-forest/10 font-light"
                             />
                           </div>
                         </div>
@@ -786,56 +1084,116 @@ export default function App() {
                     )}
 
                     {resStep === 3 && (
-                      <div className="space-y-6 pt-2">
-                        <div className="text-center space-y-1">
-                          <div className="inline-block bg-forest text-gold p-2 rounded-full mb-2">
-                            <CheckCircle size={24} />
+                      <div className="space-y-6 pt-2 text-center">
+                        <div className="space-y-1">
+                          <div className="inline-flex relative">
+                            <div className="absolute inset-0 bg-gold/20 rounded-full animate-ping scale-125 duration-1000" />
+                            <div className="bg-forest text-gold rounded-full p-4 relative shadow-sm">
+                              <CheckCircle size={28} className="text-gold" />
+                            </div>
                           </div>
-                          <h3 className="font-serif text-2xl font-bold text-forest">Reservation Confirmed!</h3>
-                          <p className="text-xs text-forest/75 font-light">Your mountain ledger spot is safely documented.</p>
+                          <h3 className="font-serif text-2xl font-bold text-forest mt-3">Spot Secured Meticulously!</h3>
+                          <p className="text-xs text-forest/70 max-w-sm mx-auto font-light">Your mountain ledger spot is safely documented. We look forward to meeting you.</p>
                         </div>
 
-                        {/* Ticket Voucher design */}
-                        <div className="border border-dashed border-gold/40 rounded-xl p-5 bg-cream/30 space-y-3 relative text-xs">
-                          <div className="border-b border-forest/10 pb-3 mb-2 flex justify-between items-baseline">
-                            <strong className="font-serif text-sm tracking-wider text-[#163B34]">GARDEN BAGEECHA RETREAT</strong>
-                            <span className="text-[9px] uppercase tracking-widest text-[#D4A373] font-bold">Verified</span>
+                        {/* Double Notched Ticket Voucher design */}
+                        <div className="bg-white border-2 border-dashed border-gold/45 rounded-2xl p-5 shadow-md relative overflow-hidden text-left max-w-sm mx-auto">
+                          
+                          {/* Circle cutouts */}
+                          <div className="absolute w-6 h-6 rounded-full bg-cream -left-3 top-1/2 -translate-y-1/2 border-r-2 border-dashed border-gold/20" />
+                          <div className="absolute w-6 h-6 rounded-full bg-cream -right-3 top-1/2 -translate-y-1/2 border-l-2 border-dashed border-gold/20" />
+                          
+                          {/* Brand Header */}
+                          <div className="text-center border-b border-forest/10 pb-4 mb-4">
+                            <span className="font-serif text-base tracking-[0.08em] font-black text-forest">CAFE BAGEECHA</span>
+                            <p className="text-[8px] text-[#D4A373] tracking-widest font-extrabold uppercase mt-0.5">VERIFIED TABLE GUARANTEE</p>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4 text-left">
+                          <div className="grid grid-cols-2 gap-y-3.5 gap-x-4 text-[11px] text-forest/85 font-sans">
                             <div>
-                              <span className="text-[9px] text-[#0a1e1a]/50 uppercase tracking-widest block font-bold">Ledger Code</span>
-                              <strong className="text-forest tracking-wider font-mono text-xs">{bookingCode}</strong>
+                              <span className="text-[8px] text-forest/40 uppercase tracking-widest font-black block">Reservation Identity</span>
+                              <strong className="text-xs font-mono bg-cream px-1.5 py-0.5 rounded border border-forest/5 text-forest block mt-0.5 mt-1 tracking-wider text-center">{bookingCode}</strong>
                             </div>
+
                             <div>
-                              <span className="text-[9px] text-[#0a1e1a]/50 uppercase tracking-widest block font-bold">Assigned Table</span>
-                              <strong className="text-forest text-xs">Table #{assignedTable}</strong>
+                              <span className="text-[8px] text-forest/40 uppercase tracking-widest font-black block">Allocated Table</span>
+                              <strong className="text-xs text-forest block mt-1">Table #{assignedTable}</strong>
                             </div>
+
                             <div>
-                              <span className="text-[9px] text-[#0a1e1a]/50 uppercase tracking-widest block font-bold">Primary Guest</span>
-                              <strong className="text-forest text-xs truncate block">{userName}</strong>
+                              <span className="text-[8px] text-forest/40 uppercase tracking-widest font-black block">Primary Guest Host</span>
+                              <strong className="text-xs text-forest block mt-1 truncate font-semibold">{userName}</strong>
                             </div>
+
                             <div>
-                              <span className="text-[9px] text-[#0a1e1a]/50 uppercase tracking-widest block font-bold">Seating Zone</span>
-                              <strong className="text-forest text-xs capitalize">{tableType.replace(/_/g, " ")}</strong>
+                              <span className="text-[8px] text-forest/40 uppercase tracking-widest font-black block">Seating Ambiance</span>
+                              <strong className="text-xs text-forest block mt-1 capitalize">{tableType.replace(/_/g, " ")}</strong>
                             </div>
+
                             <div>
-                              <span className="text-[9px] text-[#0a1e1a]/50 uppercase tracking-widest block font-bold">Guests & Arrive Slot</span>
-                              <strong className="text-forest text-xs">{guests} Guests at {time}</strong>
+                              <span className="text-[8px] text-forest/40 uppercase tracking-widest font-black block">Arrival Bracket</span>
+                              <strong className="text-xs text-forest block mt-1 font-mono font-bold text-forest">{time}</strong>
                             </div>
+
                             <div>
-                              <span className="text-[9px] text-[#0a1e1a]/50 uppercase tracking-widest block font-bold">Date</span>
-                              <strong className="text-forest text-xs">{date}</strong>
+                              <span className="text-[8px] text-forest/40 uppercase tracking-widest font-black block">Target Date</span>
+                              <strong className="text-xs text-forest block mt-1 font-mono">{date}</strong>
                             </div>
                           </div>
                         </div>
 
-                        <div className="pt-2 text-center">
-                          <button 
-                            onClick={handleReset}
-                            className="bg-forest hover:bg-[#D4A373] text-white flex items-center justify-center space-x-2 font-bold px-8 py-3 rounded-lg text-xs uppercase tracking-widest mx-auto cursor-pointer"
+                        {/* Redefined action buttons */}
+                        <div className="flex flex-col gap-2.5 max-w-sm mx-auto pt-3 shrink-0">
+                          <button
+                            onClick={triggerResDownloadMock}
+                            disabled={isResDownloading}
+                            className="w-full bg-forest hover:bg-gold text-white hover:text-forest px-4 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-sm cursor-pointer disabled:opacity-50"
                           >
-                            New Reservation Request
+                            {isResDownloading ? (
+                              <>
+                                <div className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                                <span>Generating Receipt...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Download size={13} />
+                                <span>Download Voucher Pass</span>
+                              </>
+                            )}
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              const formattedDate = date.replace(/-/g, "");
+                              const startHour = time.includes("PM") && !time.startsWith("12")
+                                ? parseInt(time.split(":")[0]) + 12 
+                                : parseInt(time.split(":")[0]);
+                              const formattedStart = `${formattedDate}T${startHour.toString().padStart(2, "0")}3000`;
+                              const formattedEnd = `${formattedDate}T${(startHour + 2).toString().padStart(2, "0")}3000`;
+                              const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Cafe+Bageecha+Reservation&dates=${formattedStart}/${formattedEnd}&details=Your+premium+table+ #${assignedTable} is secured under booking code: +${bookingCode}&location=Cafe+Bageecha,+Panchvati,+Sarol,+Chamba,+Himachal+Pradesh`;
+                              window.open(gCalUrl, "_blank");
+                            }}
+                            className="w-full bg-white border border-forest/15 hover:bg-gold/5 text-forest px-4 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-xs"
+                          >
+                            <CalendarPlus size={13} className="text-[#D4A373]" />
+                            <span>Add to Google Calendar</span>
+                          </button>
+
+                          <a
+                            href="https://wa.me/917658096379"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white px-4 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-xs"
+                          >
+                            <MessageSquare size={13} />
+                            <span>Support Chat on WhatsApp</span>
+                          </a>
+
+                          <button
+                            onClick={handleReset}
+                            className="w-full text-forest/50 hover:text-forest text-[11px] font-bold uppercase tracking-wider mt-1 transition-colors"
+                          >
+                            New Table Booking Request
                           </button>
                         </div>
                       </div>
@@ -848,18 +1206,19 @@ export default function App() {
                       {resStep === 2 ? (
                         <button 
                           onClick={() => setResStep(1)}
-                          className="text-xs uppercase tracking-widest text-forest/70 font-semibold cursor-pointer hover:text-forest"
+                          className="text-xs uppercase tracking-widest text-[#163B34]/75 hover:text-[#163B34] font-bold flex items-center space-x-1 cursor-pointer"
                         >
-                          Back: Change Seating
+                          <ArrowLeft size={14} />
+                          <span>Seating</span>
                         </button>
                       ) : (
                         <div />
                       )}
                       <button 
                         onClick={handleNextStep}
-                        className="bg-forest hover:bg-gold text-white hover:text-forest flex items-center space-x-2 font-bold px-7 py-3 rounded-sm text-xs uppercase tracking-wider cursor-pointer"
+                        className="bg-forest hover:bg-gold text-white hover:text-forest flex items-center space-x-2 font-black px-7 py-3 rounded-md text-xs uppercase tracking-widest cursor-pointer shadow-md"
                       >
-                        <span>{resStep === 1 ? "Next: Add Details" : "Secure My Spot"}</span>
+                        <span>{resStep === 1 ? "Next: Add Coordinates" : "Confirm My Table"}</span>
                         <ArrowRight size={14} className="text-gold" />
                       </button>
                     </div>
