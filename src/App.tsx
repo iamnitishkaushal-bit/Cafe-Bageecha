@@ -47,7 +47,17 @@ export default function App() {
   });
 
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [heroMouse, setHeroMouse] = useState({ x: 0, y: 0 });
+
+  // Monitor screen width to safely disable resource-heavy parallax on mobile screens
+  useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mobileQuery.matches);
+    const listener = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mobileQuery.addEventListener("change", listener);
+    return () => mobileQuery.removeEventListener("change", listener);
+  }, []);
 
   // Access preferences check for reduced motion
   useEffect(() => {
@@ -59,7 +69,7 @@ export default function App() {
   }, []);
 
   const handleHeroMouseMove = (e: React.MouseEvent) => {
-    if (window.innerWidth < 768 || reducedMotion) return;
+    if (window.innerWidth < 768 || reducedMotion || isMobile) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -283,21 +293,36 @@ Location        : Cafe Bageecha, Panchvati,
                 onMouseLeave={handleHeroMouseLeave}
                 className="relative h-[80vh] min-h-[580px] lg:h-[80vh] lg:max-h-[80vh] flex flex-col md:block overflow-hidden bg-[#0a1e1a]"
               >
+                {/* 0. Media query styles to instantly freeze background and disable transitions on mobile to prevent CLS */}
+                <style dangerouslySetInnerHTML={{ __html: `
+                  @media (max-width: 767px) {
+                    #hero-bg-container, #hero-bg-image {
+                      transform: none !important;
+                      transition: none !important;
+                      will-change: auto !important;
+                    }
+                  }
+                `}} />
+
                 {/* 1. Landscape Background Container - Pinned as high-quality cinematic frame */}
                 <div 
+                  id="hero-bg-container"
                   className="absolute inset-0 w-full h-full overflow-hidden z-10"
                   style={{
-                    transform: reducedMotion ? 'none' : `translate3d(${heroMouse.x * -8}px, ${heroMouse.y * -6}px, 0)`,
-                    transition: 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)'
+                    transform: (isMobile || reducedMotion) ? 'none' : `translate3d(${heroMouse.x * -8}px, ${heroMouse.y * -6}px, 0)`,
+                    transition: (isMobile || reducedMotion) ? 'none' : 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)'
                   }}
                 >
                   <img 
+                    id="hero-bg-image"
                     alt="Chamba Chowgan and Raja Mahal Landscape" 
                     className="absolute inset-0 w-full h-full object-cover object-[50%_35%] select-none pointer-events-none"
                     src="https://www.image2url.com/r2/default/files/1781528292842-f003e5d1-681a-4545-8d0a-1a23a18a428c.png"
+                    loading="eager"
+                    decoding="sync"
                     style={{
-                      transform: reducedMotion ? 'scale(1.03)' : `scale(1.03) translate3d(${heroMouse.x * -2}px, ${heroMouse.y * -2}px, 0)`,
-                      transition: 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)'
+                      transform: (isMobile || reducedMotion) ? 'none' : `scale(1.03) translate3d(${heroMouse.x * -2}px, ${heroMouse.y * -2}px, 0)`,
+                      transition: (isMobile || reducedMotion) ? 'none' : 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)'
                     }}
                   />
                   {/* Left-side dark gradient overlay ONLY for text readability - keeps middle and right bright and rich */}
@@ -316,7 +341,7 @@ Location        : Cafe Bageecha, Panchvati,
                 </div>
 
                 {/* 2. Content Layer - Clean, searchable, true accessibility aligned with the global container grid */}
-                <div className="relative z-20 max-w-[1440px] mx-auto px-6 xl:px-[80px] w-full min-h-[75vh] lg:min-h-[85vh] lg:h-[85vh] flex flex-col justify-center pt-[120px] md:pt-0 pb-12 md:pb-0 order-1 md:order-none bg-[#0a1e1a] md:bg-transparent">
+                <div className="relative z-20 max-w-[1440px] mx-auto px-6 xl:px-[80px] w-full min-h-[75vh] lg:min-h-[85vh] lg:h-[85vh] flex flex-col justify-center pt-[120px] md:pt-0 pb-12 md:pb-0 order-1 md:order-none bg-transparent">
                   <div className="w-full md:max-w-[40%] flex flex-col items-start text-left select-none max-w-[600px] relative z-30">
                     
                     {/* Location Badge */}
